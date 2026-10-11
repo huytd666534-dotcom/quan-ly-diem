@@ -265,20 +265,18 @@ with st.sidebar:
         <div class="sidebar-brand">
             <div class="symbol">◈</div>
             <h2>BẢNG ĐIỀU KHIỂN</h2>
-            <span>AURORA • ACADEMIC INTELLIGENCE</span>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    st.markdown("### 🔎 Bộ lọc thông minh")
-
-    search_options = ["Tất cả sinh viên"] + df_students["Họ và tên"].tolist()
-    selected_student_search = st.selectbox(
-        "Tìm kiếm / chọn sinh viên",
-        options=search_options,
-        index=0,
-        help="Gõ tên hoặc chữ cái để tìm nhanh sinh viên.",
-    )
+   # Ô tìm kiếm ĐỂ TRỐNG MẶC ĐỊNH (index=None, placeholder chuẩn)
+  selected_student_search = st.selectbox(
+      "Tìm kiếm tên sinh viên:",
+      options=df_students["Họ và tên"].tolist(),
+      index=None,
+      placeholder="🔍 Nhập hoặc chọn tên sinh viên...",
+      help="Gõ chữ cái để lọc danh sách gợi ý. Bỏ trống để xem toàn bộ danh sách.",
+  )
 
     categories = ["Tất cả xếp loại"] + [
         category for category in ["Giỏi", "Khá", "Trung bình", "Yếu"]
@@ -297,9 +295,9 @@ with st.sidebar:
         """
         <div class="dev-card">
             <h4>✦ THÔNG TIN TÁC GIẢ</h4>
-            <p><b>Họ và tên:</b> Nguyễn Văn A</p>
-            <p><b>MSSV:</b> 22110000</p>
-            <p><b>Lớp:</b> Lập trình Python K63</p>
+            <p><b>Họ và tên:</b> Trần Đăng Huy </p>
+            <p><b>MSSV:</b> 066208016534 </p>
+            <p><b>Lớp:</b> AI87 </p>
             <p><b>Trường:</b> ĐH Giao Thông Vận Tải</p>
         </div>
         """,
