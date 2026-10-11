@@ -335,7 +335,9 @@ with tab1:
     else:
       return "background-color: #f8d7da; color: #842029; font-weight: bold;"
 
-  styled_df = df_filtered.style.applymap(
+ styled_df = df_filtered.style.map(
+    highlight_xep_loai, subset=["Xep_loai"]
+).format({"Tong_ket": "{:.2f}"})
       highlight_xep_loai, subset=["Xep_loai"]
   ).format({"Tong_ket": "{:.2f}"})
 
