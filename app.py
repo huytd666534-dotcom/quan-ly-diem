@@ -1,10 +1,9 @@
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
 
 # ==========================================
-# 1. CẤU HÌNH TRANG WEB & THEME
+# 1. CẤU HÌNH TRANG WEB
 # ==========================================
 st.set_page_config(
     page_title="Hệ Thống Quản Lý Điểm Sinh Viên",
@@ -14,19 +13,17 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. CUSTOM CSS (TÙY CHỈNH GIAO DIỆN XỊN SÒ)
+# 2. CUSTOM CSS TÙY CHỈNH GIAO DIỆN
 # ==========================================
 st.markdown(
     """
     <style>
-    /* Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
 
-    /* Gradient Header */
     .main-header {
         background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
         padding: 24px;
@@ -48,7 +45,6 @@ st.markdown(
         font-size: 1rem;
     }
 
-    /* Metric Cards Custom Styling */
     .metric-card {
         background: #ffffff;
         border-radius: 12px;
@@ -80,13 +76,11 @@ st.markdown(
         font-weight: 500;
     }
 
-    /* Colors for Metrics */
     .val-blue { color: #2a5298; }
     .val-green { color: #2e7d32; }
     .val-red { color: #c62828; }
     .val-purple { color: #6a1b9a; }
 
-    /* Profile Card for Tab 3 */
     .profile-card {
         background: #ffffff;
         border-radius: 16px;
@@ -119,7 +113,6 @@ st.markdown(
     .badge-tb { background-color: #fff3cd; color: #664d03; }
     .badge-yeu { background-color: #f8d7da; color: #842029; }
 
-    /* Sidebar Developer Card */
     .dev-card {
         background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
         color: white;
@@ -168,14 +161,14 @@ def get_student_data():
   }
   df = pd.DataFrame(data)
 
-  # Tính điểm tổng kết: 20% Chuyên cần + 30% Giữa kỳ + 50% Cuối kỳ
+  # Công thức: 20% Chuyên cần + 30% Giữa kỳ + 50% Cuối kỳ
   df["Tong_ket"] = (
       0.2 * df["Điểm chuyên cần"]
       + 0.3 * df["Điểm giữa kỳ"]
       + 0.5 * df["Điểm cuối kỳ"]
   ).round(2)
 
-  # Xếp loại sinh viên
+  # Xếp loại
   def phan_loai(score):
     if score >= 8.5:
       return "Giỏi"
@@ -194,22 +187,18 @@ df_students = get_student_data()
 
 
 # ==========================================
-# 4. THANH BÊN (SIDEBAR) & BỘ LỌC TƯƠNG TÁC
+# 4. THANH BÊN (SIDEBAR)
 # ==========================================
 with st.sidebar:
   st.image("https://cdn-icons-png.flaticon.com/512/3135/3135755.png", width=80)
   st.title("⚙️ BẢNG ĐIỀU KHIỂN")
 
   st.subheader("🔍 Lọc dữ liệu")
-
-  # Ô tìm kiếm tên
   search_name = st.text_input("Tìm kiếm theo tên:", placeholder="Nhập tên SV...")
 
-  # Lọc theo Xếp loại
   categories = ["Tất cả"] + list(df_students["Xep_loai"].unique())
   selected_category = st.selectbox("Lọc theo xếp loại:", categories)
 
-  # Áp dụng bộ lọc
   df_filtered = df_students.copy()
   if search_name:
     df_filtered = df_filtered[
@@ -221,8 +210,6 @@ with st.sidebar:
     df_filtered = df_filtered[df_filtered["Xep_loai"] == selected_category]
 
   st.markdown("---")
-
-  # Thẻ thông tin người thực hiện
   st.markdown(
       """
     <div class="dev-card">
@@ -238,7 +225,7 @@ with st.sidebar:
 
 
 # ==========================================
-# 5. TIÊU ĐỀ CHÍNH CỦA ỨNG DỤNG
+# 5. TIÊU ĐỀ TRANG WEB
 # ==========================================
 st.markdown(
     """
@@ -252,7 +239,7 @@ st.markdown(
 
 
 # ==========================================
-# 6. GIAO DIỆN TABS (BO CỤC 3 TAB CHUYÊN NGHIỆP)
+# 6. GIAO DIỆN TABS
 # ==========================================
 tab1, tab2, tab3 = st.tabs([
     "📊 Tổng quan & Bảng điểm",
@@ -267,14 +254,12 @@ tab1, tab2, tab3 = st.tabs([
 with tab1:
   st.subheader("📌 Chỉ số thống kê toàn lớp")
 
-  # Tính toán các chỉ số thống kê
   avg_score = df_students["Tong_ket"].mean()
   max_student = df_students.loc[df_students["Tong_ket"].idxmax()]
   min_student = df_students.loc[df_students["Tong_ket"].idxmin()]
   passed_count = (df_students["Tong_ket"] >= 5.0).sum()
   pass_rate = (passed_count / len(df_students)) * 100
 
-  # Hiển thị 4 thẻ Metric nâng cao
   m1, m2, m3, m4 = st.columns(4)
   with m1:
     st.markdown(
@@ -324,24 +309,18 @@ with tab1:
   st.write("")
   st.subheader("📋 Bảng điểm sinh viên đầy đủ")
 
-# Định dạng tô màu cho cột Xếp loại
-    def highlight_xep_loai(val):
-        if val == 'Giỏi':
-            return 'background-color: #d1e7dd; color: #0f5132; font-weight: bold;'
-        elif val == 'Khá':
-            return 'background-color: #cff4fc; color: #055160; font-weight: bold;'
-        elif val == 'Trung bình':
-            return 'background-color: #fff3cd; color: #664d03; font-weight: bold;'
-        else:
-            return 'background-color: #f8d7da; color: #842029; font-weight: bold;'
+  # Định dạng màu cho cột Xếp loại sử dụng .map() tương thích Pandas mới
+  def highlight_xep_loai(val):
+    if val == "Giỏi":
+      return "background-color: #d1e7dd; color: #0f5132; font-weight: bold;"
+    elif val == "Khá":
+      return "background-color: #cff4fc; color: #055160; font-weight: bold;"
+    elif val == "Trung bình":
+      return "background-color: #fff3cd; color: #664d03; font-weight: bold;"
+    else:
+      return "background-color: #f8d7da; color: #842029; font-weight: bold;"
 
-    styled_df = df_filtered.style.map(highlight_xep_loai, subset=['Xep_loai']).format({'Tong_ket': '{:.2f}'})
-
-    st.dataframe(styled_df, use_container_width=True, height=380)
-
- styled_df = df_filtered.style.map(
-    highlight_xep_loai, subset=["Xep_loai"]
-).format({"Tong_ket": "{:.2f}"})
+  styled_df = df_filtered.style.map(
       highlight_xep_loai, subset=["Xep_loai"]
   ).format({"Tong_ket": "{:.2f}"})
 
@@ -349,24 +328,22 @@ with tab1:
 
 
 # ------------------------------------------
-# TAB 2: BIỂU ĐỒ & PHÂN TÍCH (PLOTLY INTERACTIVE)
+# TAB 2: BIỂU ĐỒ & PHÂN TÍCH
 # ------------------------------------------
 with tab2:
   st.subheader("📈 Phân tích trực quan dữ liệu điểm")
 
   col_chart1, col_chart2 = st.columns([6, 4])
 
+  color_map = {
+      "Giỏi": "#198754",
+      "Khá": "#0dcaf0",
+      "Trung bình": "#ffc107",
+      "Yếu": "#dc3545",
+  }
+
   with col_chart1:
     st.markdown("##### **Biểu đồ cột điểm tổng kết từng sinh viên**")
-
-    # Map màu sắc riêng theo từng xếp loại
-    color_map = {
-        "Giỏi": "#198754",
-        "Khá": "#0dcaf0",
-        "Trung bình": "#ffc107",
-        "Yếu": "#dc3545",
-    }
-
     fig_bar = px.bar(
         df_students,
         x="Họ và tên",
@@ -381,7 +358,6 @@ with tab2:
         },
         height=420,
     )
-
     fig_bar.update_traces(
         textposition="outside", hovertemplate="<b>%{x}</b><br>Điểm: %{y}"
     )
@@ -394,8 +370,6 @@ with tab2:
 
   with col_chart2:
     st.markdown("##### **Tỷ lệ xếp loại của lớp**")
-
-    # Biểu đồ tròn Donut chart
     rank_counts = df_students["Xep_loai"].value_counts().reset_index()
     rank_counts.columns = ["Xếp loại", "Số lượng"]
 
@@ -418,7 +392,7 @@ with tab2:
 
 
 # ------------------------------------------
-# TAB 3: TRA CỨU CÁ NHÂN (STUDENT PROFILE CARD)
+# TAB 3: TRA CỨU CÁ NHÂN
 # ------------------------------------------
 with tab3:
   st.subheader("🔍 Tra cứu chi tiết học tập cá nhân")
@@ -429,12 +403,10 @@ with tab3:
       index=0,
   )
 
-  # Lấy dữ liệu sinh viên được chọn
   student_info = df_students[
       df_students["Họ và tên"] == selected_student_name
   ].iloc[0]
 
-  # Xác định Badge Class tương ứng
   rank_class = "badge-yeu"
   if student_info["Xep_loai"] == "Giỏi":
     rank_class = "badge-gioi"
@@ -443,7 +415,6 @@ with tab3:
   elif student_info["Xep_loai"] == "Trung bình":
     rank_class = "badge-tb"
 
-  # Hiển thị Thẻ hồ sơ cá nhân
   st.markdown(
       f"""
     <div class="profile-card">
@@ -463,7 +434,6 @@ with tab3:
 
   st.write("")
 
-  # Hiển thị điểm thành phần dạng Metric cột
   c_cc, c_gk, c_ck, c_tk = st.columns(4)
   with c_cc:
     st.metric(
@@ -484,8 +454,7 @@ with tab3:
         delta=f"{student_info['Xep_loai']}",
     )
 
-  # Thanh tiến trình thể hiện điểm tổng kết
   progress_val = float(student_info["Tong_ket"]) / 10.0
   st.write("")
-  st.write(f"**Tiến độ đạt thang điểm tối đa (10.0):**")
+  st.write("**Tiến độ đạt thang điểm tối đa (10.0):**")
   st.progress(progress_val)
