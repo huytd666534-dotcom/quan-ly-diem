@@ -24,7 +24,6 @@ st.markdown(
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    /* Keyframe Animations */
     @keyframes slideUp {
         0% { opacity: 0; transform: translateY(20px); }
         100% { opacity: 1; transform: translateY(0); }
@@ -35,7 +34,6 @@ st.markdown(
         100% { opacity: 1; }
     }
 
-    /* Main Container & Header */
     .main-header {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0284c7 100%);
         padding: 32px;
@@ -43,7 +41,7 @@ st.markdown(
         color: #ffffff;
         text-align: center;
         margin-bottom: 28px;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
         border: 1px solid rgba(255, 255, 255, 0.1);
         animation: fadeIn 0.8s ease-out;
     }
@@ -61,22 +59,19 @@ st.markdown(
         font-weight: 400;
     }
 
-    /* Executive Metric Cards */
     .metric-card {
         background: #ffffff;
         border-radius: 16px;
         padding: 22px 20px;
-        box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.05), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
+        box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.05);
         border: 1px solid #e2e8f0;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
+        transition: all 0.3s ease;
+        text-align: center;
         animation: slideUp 0.6s ease-out forwards;
     }
     .metric-card:hover {
-        transform: translateY(-5px) scale(1.01);
+        transform: translateY(-5px);
         box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.12);
-        border-color: #cbd5e1;
     }
     .card-accent-blue { border-left: 5px solid #0284c7; }
     .card-accent-green { border-left: 5px solid #10b981; }
@@ -94,7 +89,6 @@ st.markdown(
         font-size: 2.1rem;
         font-weight: 800;
         margin: 8px 0 4px 0;
-        color: #0f172a;
     }
     .metric-subtext {
         font-size: 0.85rem;
@@ -106,7 +100,6 @@ st.markdown(
     .txt-red { color: #f43f5e; }
     .txt-purple { color: #8b5cf6; }
 
-    /* Executive Student Profile Card */
     .executive-profile {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         border-radius: 20px;
@@ -131,21 +124,18 @@ st.markdown(
         color: #f8fafc;
     }
 
-    /* Badges Xếp loại Pill-tag */
     .badge-pill {
         padding: 6px 16px;
         border-radius: 9999px;
         font-size: 0.88rem;
         font-weight: 700;
         display: inline-block;
-        letter-spacing: 0.3px;
     }
     .pill-gioi { background-color: #dcfce7; color: #15803d; border: 1px solid #86efac; }
     .pill-kha { background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
     .pill-tb { background-color: #fef3c7; color: #b45309; border: 1px solid #fde047; }
     .pill-yeu { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
 
-    /* Sidebar Styling */
     .dev-card {
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -193,14 +183,12 @@ def get_student_data():
   }
   df = pd.DataFrame(data)
 
-  # Công thức: 20% Chuyên cần + 30% Giữa kỳ + 50% Cuối kỳ
   df["Tong_ket"] = (
       0.2 * df["Điểm chuyên cần"]
       + 0.3 * df["Điểm giữa kỳ"]
       + 0.5 * df["Điểm cuối kỳ"]
   ).round(2)
 
-  # Xếp loại
   def phan_loai(score):
     if score >= 8.5:
       return "Giỏi"
@@ -219,41 +207,45 @@ df_students = get_student_data()
 
 
 # ==========================================
-# 4. THANH BÊN (SIDEBAR) - TÌM KIẾM ĐỂ TRỐNG MẶC ĐỊNH
+# 4. THANH BÊN (SIDEBAR) - TÌM KIẾM AN TOÀN
 # ==========================================
 with st.sidebar:
   st.image("https://cdn-icons-png.flaticon.com/512/3135/3135755.png", width=70)
-  st.title("⚙️ EXECUTIVE CONTROL")
+  st.title("⚙️ BẢNG ĐIỀU KHIỂN")
   st.markdown("---")
 
   st.subheader("🔍 Lọc & Tìm kiếm")
 
-  # Ô tìm kiếm ĐỂ TRỐNG MẶC ĐỊNH (index=None, placeholder chuẩn)
-  selected_student_search = st.selectbox(
-      "Tìm kiếm tên sinh viên:",
-      options=df_students["Họ và tên"].tolist(),
-      index=None,
-      placeholder="🔍 Nhập hoặc chọn tên sinh viên...",
-      help="Gõ chữ cái để lọc danh sách gợi ý. Bỏ trống để xem toàn bộ danh sách.",
-  )
+  student_names = df_students["Họ và tên"].tolist()
 
-  # Bộ lọc xếp loại
+  # Bọc Try/Except phòng trường hợp phiên bản Streamlit cũ không hỗ trợ index=None
+  try:
+    selected_student_search = st.selectbox(
+        "Tìm kiếm tên sinh viên:",
+        options=student_names,
+        index=None,
+        placeholder="🔍 Nhập hoặc chọn tên sinh viên...",
+        help="Gõ chữ cái để lọc danh sách gợi ý. Bỏ trống để xem toàn bộ.",
+    )
+  except Exception:
+    fallback_options = ["-- Tất cả sinh viên --"] + student_names
+    sel = st.selectbox("Tìm kiếm tên sinh viên:", options=fallback_options)
+    selected_student_search = None if sel == "-- Tất cả sinh viên --" else sel
+
   selected_category = st.selectbox(
       "🏷️ Lọc theo xếp loại:",
       options=["Tất cả xếp loại", "Giỏi", "Khá", "Trung bình", "Yếu"],
       index=0,
   )
 
-  # Xử lý logic lọc
+  # Logic lọc dữ liệu
   df_filtered = df_students.copy()
 
-  # Khi ô tìm kiếm KHÔNG trống -> lọc theo tên sinh viên được chọn
   if selected_student_search is not None:
     df_filtered = df_filtered[
         df_filtered["Họ và tên"] == selected_student_search
     ]
 
-  # Lọc theo nhóm xếp loại
   if selected_category != "Tất cả xếp loại":
     df_filtered = df_filtered[df_filtered["Xep_loai"] == selected_category]
 
@@ -264,7 +256,7 @@ with st.sidebar:
         <h4>👨‍💻 THÔNG TIN QUẢN TRỊ</h4>
         <p><b>Hệ thống:</b> Executive Dashboard</p>
         <p><b>Phiên bản:</b> 3.0 Enterprise</p>
-        <p><b>Trạng thái:</b> Tự động cập nhật</p>
+        <p><b>Trạng thái:</b> Hoạt động ổn định</p>
     </div>
     """,
       unsafe_allow_html=True,
@@ -286,7 +278,7 @@ st.markdown(
 
 
 # ==========================================
-# 6. BỐ CỤC 3 TABS EXECUTIVE
+# 6. BỐ CỤC 3 TABS
 # ==========================================
 tab1, tab2, tab3 = st.tabs([
     "📊 Tổng Quan & Bảng Điểm",
@@ -357,22 +349,31 @@ with tab1:
   st.write("")
   st.subheader("📋 Bảng điểm chi tiết sinh viên")
 
-  # Style ô xếp loại với hàm map tương thích Pandas mới nhất
-  def highlight_xep_loai(val):
-    if val == "Giỏi":
-      return "background-color: #dcfce7; color: #15803d; font-weight: bold;"
-    elif val == "Khá":
-      return "background-color: #e0f2fe; color: #0369a1; font-weight: bold;"
-    elif val == "Trung bình":
-      return "background-color: #fef3c7; color: #b45309; font-weight: bold;"
-    else:
-      return "background-color: #fee2e2; color: #b91c1c; font-weight: bold;"
+  if df_filtered.empty:
+    st.warning("⚠️ Không tìm thấy sinh viên nào phù hợp với điều kiện lọc.")
+  else:
 
-  styled_df = df_filtered.style.map(
-      highlight_xep_loai, subset=["Xep_loai"]
-  ).format({"Tong_ket": "{:.2f}"})
+    def highlight_xep_loai(val):
+      if val == "Giỏi":
+        return "background-color: #dcfce7; color: #15803d; font-weight: bold;"
+      elif val == "Khá":
+        return "background-color: #e0f2fe; color: #0369a1; font-weight: bold;"
+      elif val == "Trung bình":
+        return "background-color: #fef3c7; color: #b45309; font-weight: bold;"
+      else:
+        return "background-color: #fee2e2; color: #b91c1c; font-weight: bold;"
 
-  st.dataframe(styled_df, use_container_width=True, height=380)
+    # Tương thích cả phiên bản Pandas mới (.map) lẫn phiên bản cũ (.applymap)
+    try:
+      styled_df = df_filtered.style.map(
+          highlight_xep_loai, subset=["Xep_loai"]
+      ).format({"Tong_ket": "{:.2f}"})
+    except AttributeError:
+      styled_df = df_filtered.style.applymap(
+          highlight_xep_loai, subset=["Xep_loai"]
+      ).format({"Tong_ket": "{:.2f}"})
+
+    st.dataframe(styled_df, use_container_width=True, height=380)
 
 
 # ------------------------------------------
@@ -454,58 +455,67 @@ with tab2:
 with tab3:
   st.subheader("🔍 Tra cứu thẻ hồ sơ thành tích cá nhân")
 
-  # Tra cứu cá nhân ở Tab 3 cũng có placeholder trống mặc định
   selected_student_vip = st.selectbox(
       "🎯 Chọn tên sinh viên để xem hồ sơ chi tiết:",
       options=df_students["Họ và tên"].tolist(),
       index=0,
   )
 
-  student_info = df_students[
-      df_students["Họ và tên"] == selected_student_vip
-  ].iloc[0]
+  if selected_student_vip:
+    student_info = df_students[
+        df_students["Họ và tên"] == selected_student_vip
+    ].iloc[0]
 
-  pill_class = "pill-yeu"
-  if student_info["Xep_loai"] == "Giỏi":
-    pill_class = "pill-gioi"
-  elif student_info["Xep_loai"] == "Khá":
-    pill_class = "pill-kha"
-  elif student_info["Xep_loai"] == "Trung bình":
-    pill_class = "pill-tb"
+    pill_class = "pill-yeu"
+    if student_info["Xep_loai"] == "Giỏi":
+      pill_class = "pill-gioi"
+    elif student_info["Xep_loai"] == "Khá":
+      pill_class = "pill-kha"
+    elif student_info["Xep_loai"] == "Trung bình":
+      pill_class = "pill-tb"
 
-  # Thẻ hồ sơ cá nhân sang trọng phong cách Executive
-  st.markdown(
-      f"""
-        <div class="executive-profile">
-            <div class="profile-header">
-                <div>
-                    <span style="font-size: 0.82rem; color: #38bdf8; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">EXECUTIVE STUDENT PROFILE</span>
-                    <div class="profile-name">👤 {student_info['Họ và tên']}</div>
+    st.markdown(
+        f"""
+            <div class="executive-profile">
+                <div class="profile-header">
+                    <div>
+                        <span style="font-size: 0.82rem; color: #38bdf8; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">EXECUTIVE STUDENT PROFILE</span>
+                        <div class="profile-name">👤 {student_info['Họ và tên']}</div>
+                    </div>
+                    <div>
+                        <span class="badge-pill {pill_class}">Xếp loại: {student_info['Xep_loai']}</span>
+                    </div>
                 </div>
-                <div>
-                    <span class="badge-pill {pill_class}">Xếp loại: {student_info['Xep_loai']}</span>
-                </div>
+                <p style="margin: 0; color: #94a3b8; font-size: 0.9rem;">Mã hồ sơ: <b>SV-{student_info['Họ và tên'].upper()}-2026</b> | Hệ đào tạo: Chính quy</p>
             </div>
-            <p style="margin: 0; color: #94a3b8; font-size: 0.9rem;">Mã hồ sơ: <b>SV-{student_info['Họ và tên'].upper()}-2026</b> | Hệ đào tạo: Chính quy</p>
-        </div>
-    """,
-      unsafe_allow_html=True,
-  )
+        """,
+        unsafe_allow_html=True,
+    )
 
-  st.write("")
+    st.write("")
 
-  c_cc, c_gk, c_ck, c_tk = st.columns(4)
-  with c_cc:
-    st.metric(
-        label="🎯 Điểm Chuyên Cần (20%)", value=f"{student_info['Điểm chuyên cần']}"
-    )
-  with c_gk:
-    st.metric(
-        label="📝 Điểm Giữa Kỳ (30%)", value=f"{student_info['Điểm giữa kỳ']}"
-    )
-  with c_ck:
-    st.metric(
-        label="✍️ Điểm Cuối Kỳ (50%)", value=f"{student_info['Điểm cuối kỳ']}"
-    )
-  with c_tk:
-    st
+    c_cc, c_gk, c_ck, c_tk = st.columns(4)
+    with c_cc:
+      st.metric(
+          label="🎯 Điểm Chuyên Cần (20%)",
+          value=f"{student_info['Điểm chuyên cần']}",
+      )
+    with c_gk:
+      st.metric(
+          label="📝 Điểm Giữa Kỳ (30%)", value=f"{student_info['Điểm giữa kỳ']}"
+      )
+    with c_ck:
+      st.metric(
+          label="✍️ Điểm Cuối Kỳ (50%)", value=f"{student_info['Điểm cuối kỳ']}"
+      )
+    with c_tk:
+      st.metric(
+          label="🌟 ĐIỂM TỔNG KẾT",
+          value=f"{student_info['Tong_ket']}",
+          delta=f"{student_info['Xep_loai']}",
+      )
+
+    progress_val = float(student_info["Tong_ket"]) / 10.0
+    st.write("")
+    st.write("**Tiến độ hoàn thành thang điểm 10.0:**")
+    st.progress(progress_val)
