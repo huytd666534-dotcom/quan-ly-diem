@@ -95,4 +95,4 @@ st.pyplot(fig)
 
 # 7. Thông tin người thực hiện ở chân trang[cite: 2]
 st.markdown('---')
-st.caption('Người thực hiện: Nguyễn Văn A | MSSV: 12345678')
+st.caption('Người thực hiện: Trần Đăng Huy | MSSV: 066208016534')
