@@ -1,6 +1,4 @@
-from pathlib import Path
-
-code = r'''import pandas as pd
+import pandas as pd
 import plotly.express as px
 import streamlit as st
 
@@ -541,7 +539,3 @@ st.markdown(
     'AURORA STUDENT ANALYTICS · Designed for clarity, built for insight</div>',
     unsafe_allow_html=True,
 )
-'''
-out = Path("/mnt/data/app.py")
-out.write_text(code, encoding="utf-8")
-print(f"Đã tạo {out} ({out.stat().st_size:,} bytes)")
