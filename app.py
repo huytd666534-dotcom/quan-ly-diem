@@ -324,16 +324,20 @@ with tab1:
   st.write("")
   st.subheader("📋 Bảng điểm sinh viên đầy đủ")
 
-  # Định dạng tô màu cho cột Xếp loại trong Pandas Styler
-  def highlight_xep_loai(val):
-    if val == "Giỏi":
-      return "background-color: #d1e7dd; color: #0f5132; font-weight: bold;"
-    elif val == "Khá":
-      return "background-color: #cff4fc; color: #055160; font-weight: bold;"
-    elif val == "Trung bình":
-      return "background-color: #fff3cd; color: #664d03; font-weight: bold;"
-    else:
-      return "background-color: #f8d7da; color: #842029; font-weight: bold;"
+# Định dạng tô màu cho cột Xếp loại
+    def highlight_xep_loai(val):
+        if val == 'Giỏi':
+            return 'background-color: #d1e7dd; color: #0f5132; font-weight: bold;'
+        elif val == 'Khá':
+            return 'background-color: #cff4fc; color: #055160; font-weight: bold;'
+        elif val == 'Trung bình':
+            return 'background-color: #fff3cd; color: #664d03; font-weight: bold;'
+        else:
+            return 'background-color: #f8d7da; color: #842029; font-weight: bold;'
+
+    styled_df = df_filtered.style.map(highlight_xep_loai, subset=['Xep_loai']).format({'Tong_ket': '{:.2f}'})
+
+    st.dataframe(styled_df, use_container_width=True, height=380)
 
  styled_df = df_filtered.style.map(
     highlight_xep_loai, subset=["Xep_loai"]
