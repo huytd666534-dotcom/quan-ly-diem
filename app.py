@@ -583,12 +583,12 @@ with st.sidebar:
     html(
         f"""
         <div class="dev-card">
-            <div class="dev-avatar"><span>{initials("Nguyễn Văn A")}</span></div>
+            <div class="dev-avatar"><span>{initials("Trần Đăng Huy")}</span></div>
             <div>
                 <h4>Thông tin tác giả</h4>
-                <p><b>Họ và tên:</b> Nguyễn Văn A</p>
-                <p><b>MSSV:</b> 22110000</p>
-                <p><b>Lớp:</b> Lập trình Python K63</p>
+                <p><b>Họ và tên:</b> Trần Đăng Huy</p>
+                <p><b>MSSV:</b> 066208016543 </p>
+                <p><b>Lớp:</b> AI87 </p>
                 <p><b>Trường:</b> ĐH Giao Thông Vận Tải</p>
             </div>
         </div>
