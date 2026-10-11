@@ -234,7 +234,7 @@ with st.sidebar:
   st.subheader("🔍 Lọc & Tìm kiếm Autocomplete")
 
   # Ô tìm kiếm gợi ý danh sách tự động (Autocomplete Selectbox)
-  search_options = df_students["Họ và tên"].tolist()
+  search_options =  ["Tất cả sinh viên"] + df_students["Họ và tên"].tolist()
   selected_student_search = st.selectbox(
       "🔎 Tìm kiếm/Chọn sinh viên (Gõ chữ để gợi ý):",
       options=search_options,
@@ -267,9 +267,9 @@ with st.sidebar:
       """
     <div class="dev-card">
         <h4>👨‍💻 THÔNG TIN TÁC GIẢ</h4>
-        <p><b>Họ và tên:</b> Nguyễn Văn A</p>
-        <p><b>MSSV:</b> 22110000</p>
-        <p><b>Lớp:</b> Lập trình Python K63</p>
+        <p><b>Họ và tên:</b> Trần Đăng Huy</p>
+        <p><b>MSSV:</b> 066208016534 </p>
+        <p><b>Lớp:</b> AI87 </p>
         <p><b>Trường:</b> ĐH Giao Thông Vận Tải</p>
     </div>
     """,
