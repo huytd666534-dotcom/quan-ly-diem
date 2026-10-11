@@ -1,522 +1,547 @@
-import pandas as pd
+from pathlib import Path
+
+code = r'''import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-# ==========================================
-# 1. CẤU HÌNH TRANG WEB
-# ==========================================
+# =========================================================
+# 1. CẤU HÌNH ỨNG DỤNG
+# =========================================================
 st.set_page_config(
-    page_title="Hệ Thống Quản Lý Điểm Sinh Viên VIP",
+    page_title="AURORA | Student Performance",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ==========================================
-# 2. CUSTOM CSS NÂNG CAO (KEYFRAME ANIMATIONS & GLASSMORPHISM)
-# ==========================================
+# =========================================================
+# 2. DESIGN SYSTEM — AURORA VIP
+# =========================================================
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
+    :root {
+        --ink: #eaf1ff;
+        --muted: #9aa9c6;
+        --panel: rgba(17, 27, 49, .78);
+        --line: rgba(148, 163, 184, .16);
+        --cyan: #6ee7f9;
+        --violet: #a78bfa;
+        --mint: #6ee7b7;
     }
 
-    /* Keyframe Animations */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(15px); }
-        to { opacity: 1; transform: translateY(0); }
+    html, body, [class*="css"], [data-testid="stAppViewContainer"] {
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
-
-    @keyframes slideUp {
-        from { opacity: 0; transform: translateY(25px); }
-        to { opacity: 1; transform: translateY(0); }
+    .stApp {
+        background:
+            radial-gradient(ellipse at 12% 0%, rgba(70, 95, 180, .22), transparent 34%),
+            radial-gradient(ellipse at 88% 12%, rgba(14, 165, 233, .12), transparent 30%),
+            linear-gradient(145deg, #080e1b 0%, #0b1222 48%, #10152a 100%);
+        color: var(--ink);
     }
+    [data-testid="stHeader"] { background: rgba(8, 14, 27, .72); }
+    [data-testid="stToolbar"] { right: 1rem; }
+    .block-container { padding: 2rem 2.5rem 3rem; max-width: 1600px; }
 
-    /* Animation Classes */
-    .animate-fade {
-        animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    @keyframes silkIn {
+        from { opacity: 0; transform: translate3d(0, 18px, 0) scale(.99); filter: blur(3px); }
+        to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0); }
     }
-
-    .animate-slide {
-        animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    @keyframes shimmer {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 200% 50%; }
     }
-
-    /* Header Thiết Kế Mới */
+    @keyframes pulseGlow {
+        0%, 100% { box-shadow: 0 0 0 rgba(110, 231, 249, 0); }
+        50% { box-shadow: 0 0 24px rgba(110, 231, 249, .12); }
+    }
     .main-header {
-        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-        padding: 30px;
-        border-radius: 20px;
-        color: white;
-        text-align: center;
-        margin-bottom: 25px;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        animation: fadeIn 0.8s ease-out;
+        position: relative; overflow: hidden;
+        padding: 2rem 2.2rem; margin: .25rem 0 1.7rem;
+        border-radius: 26px; border: 1px solid rgba(148, 163, 184, .22);
+        background: linear-gradient(115deg, rgba(22, 36, 67, .96), rgba(21, 29, 55, .88) 55%, rgba(34, 30, 75, .86));
+        box-shadow: 0 24px 70px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.06);
+        animation: silkIn .75s cubic-bezier(.16, 1, .3, 1) both;
+    }
+    .main-header:before {
+        content: ""; position: absolute; width: 330px; height: 330px; right: -90px; top: -190px;
+        border-radius: 50%; background: rgba(110,231,249,.13); filter: blur(5px);
+    }
+    .eyebrow {
+        color: var(--cyan); text-transform: uppercase; letter-spacing: .2em;
+        font-size: .72rem; font-weight: 800; margin-bottom: .65rem;
     }
     .main-header h1 {
-        color: #ffffff !important;
-        font-weight: 800;
-        margin: 0;
-        font-size: 2.3rem;
-        letter-spacing: -0.5px;
+        color: #f7f9ff !important; font-size: clamp(1.8rem, 3vw, 2.65rem);
+        font-weight: 800; letter-spacing: -.055em; line-height: 1.15; margin: 0;
     }
-    .main-header p {
-        color: #b0bec5;
-        margin-top: 8px;
-        font-size: 1.05rem;
-        font-weight: 400;
+    .main-header p { color: #aab8d2; margin: .75rem 0 0; font-size: .98rem; }
+    .status-pill {
+        display: inline-flex; align-items: center; gap: .5rem; margin-top: 1.2rem;
+        padding: .45rem .8rem; border-radius: 99px; color: #baf7e2;
+        background: rgba(16,185,129,.1); border: 1px solid rgba(110,231,183,.25);
+        font-size: .76rem; font-weight: 700;
     }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #6ee7b7; box-shadow: 0 0 12px #6ee7b7; }
 
-    /* Metric Cards Glassmorphism */
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0c1426 0%, #101a30 58%, #11162a 100%);
+        border-right: 1px solid rgba(148,163,184,.14);
+    }
+    [data-testid="stSidebar"] > div:first-child { padding-top: 1.5rem; }
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: #aab8d2; }
+    .sidebar-brand {
+        padding: 1rem .9rem 1.2rem; border-radius: 20px; margin-bottom: 1.3rem;
+        background: linear-gradient(135deg, rgba(110,231,249,.09), rgba(167,139,250,.09));
+        border: 1px solid rgba(148,163,184,.18); text-align: center;
+    }
+    .sidebar-brand .symbol { font-size: 2.1rem; margin-bottom: .35rem; }
+    .sidebar-brand h2 {
+        color: #f1f5ff; font-size: 1.03rem; line-height: 1.5; letter-spacing: .12em;
+        font-weight: 800; margin: 0;
+    }
+    .sidebar-brand span { display:block; color: #8294b7; font-size: .68rem; letter-spacing: .16em; margin-top: .35rem; }
+    [data-testid="stSidebar"] label { color: #d7e1f4 !important; font-weight: 600 !important; }
+    [data-testid="stSidebar"] [data-baseweb="select"] > div {
+        background: rgba(7, 14, 28, .8); border: 1px solid rgba(148,163,184,.22);
+        border-radius: 12px;
+    }
+    .dev-card {
+        margin-top: 1.25rem; padding: 1.1rem; border-radius: 17px;
+        background: linear-gradient(145deg, rgba(26,40,70,.95), rgba(13,21,39,.95));
+        border: 1px solid rgba(148,163,184,.17); box-shadow: 0 12px 30px rgba(0,0,0,.18);
+    }
+    .dev-card h4 { color: var(--cyan); font-size: .82rem; letter-spacing: .08em; margin: 0 0 .8rem; }
+    .dev-card p { color: #b8c5dd; font-size: .78rem; margin: .42rem 0; }
+
+    /* Section headings and tabs */
+    h2, h3, h4 { color: #edf3ff !important; letter-spacing: -.025em; }
+    [data-testid="stTabs"] [role="tablist"] {
+        gap: .55rem; border-bottom: 1px solid rgba(148,163,184,.16);
+        padding-bottom: .45rem;
+    }
+    [data-testid="stTabs"] button[role="tab"] {
+        color: #9eacc7; border: 1px solid transparent; border-radius: 12px;
+        padding: .72rem 1rem; font-weight: 700; transition: all .28s cubic-bezier(.16,1,.3,1);
+    }
+    [data-testid="stTabs"] button[role="tab"]:hover {
+        color: #eafaff; background: rgba(110,231,249,.07); transform: translateY(-2px);
+    }
+    [data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
+        color: #d8fbff; background: linear-gradient(135deg, rgba(34,211,238,.13), rgba(139,92,246,.13));
+        border-color: rgba(110,231,249,.26); box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+    }
+    [data-testid="stTabs"] [role="tabpanel"] { animation: silkIn .55s cubic-bezier(.16,1,.3,1) both; padding-top: 1.2rem; }
+
+    /* Metric cards */
+    .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 1rem; margin: .9rem 0 1.7rem; }
     .metric-card {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 16px;
-        padding: 22px 20px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-        border: 1px solid #e2e8f0;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-        animation: slideUp 0.6s ease-out forwards;
+        position: relative; overflow: hidden; min-height: 158px; padding: 1.25rem 1.3rem;
+        border-radius: 21px; border: 1px solid rgba(255,255,255,.12);
+        background: linear-gradient(140deg, rgba(30,48,81,.92), rgba(17,27,49,.96));
+        box-shadow: 0 12px 30px rgba(0,0,0,.17), inset 0 1px rgba(255,255,255,.04);
+        transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s ease, border-color .35s ease;
+        animation: silkIn .65s cubic-bezier(.16,1,.3,1) both;
+    }
+    .metric-card:nth-child(2) { animation-delay: .08s; }
+    .metric-card:nth-child(3) { animation-delay: .16s; }
+    .metric-card:nth-child(4) { animation-delay: .24s; }
+    .metric-card:after {
+        content: attr(data-icon); position: absolute; right: 12px; bottom: -23px;
+        font-size: 6.8rem; opacity: .075; line-height: 1; filter: grayscale(1);
+        transform: rotate(-10deg); pointer-events: none;
     }
     .metric-card:hover {
-        transform: translateY(-6px) scale(1.02);
-        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
-        border-color: #cbd5e1;
+        transform: translateY(-7px) scale(1.012); border-color: rgba(110,231,249,.42);
+        box-shadow: 0 22px 45px rgba(0,0,0,.28), 0 0 25px rgba(110,231,249,.09);
     }
-    .metric-label {
-        font-size: 0.85rem;
-        color: #64748b;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-    }
-    .metric-value {
-        font-size: 2rem;
-        font-weight: 800;
-        margin: 10px 0 6px 0;
-    }
-    .metric-subtext {
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
+    .metric-label { color: #aab8d2; text-transform: uppercase; letter-spacing: .11em; font-size: .72rem; font-weight: 800; }
+    .metric-value { margin: .7rem 0 .35rem; font-size: 2.2rem; font-weight: 800; letter-spacing: -.06em; line-height: 1; }
+    .metric-subtext { color: #9eacc7; font-size: .78rem; font-weight: 600; }
+    .val-blue { color: #7dd3fc; } .val-green { color: #86efac; }
+    .val-red { color: #fda4af; } .val-purple { color: #c4b5fd; }
 
-    .val-blue { color: #1e40af; }
-    .val-green { color: #15803d; }
-    .val-red { color: #b91c1c; }
-    .val-purple { color: #6b21a8; }
-
-    /* VIP Student Profile Card */
+    /* Panel and profile */
+    .section-kicker { color: #8ea2c6; font-size: .72rem; letter-spacing: .16em; font-weight: 800; text-transform: uppercase; margin-bottom: .35rem; }
+    .panel {
+        border: 1px solid rgba(148,163,184,.16); border-radius: 20px;
+        background: linear-gradient(145deg, rgba(20,32,57,.82), rgba(13,21,39,.8));
+        padding: 1.15rem 1.2rem; box-shadow: 0 12px 30px rgba(0,0,0,.12);
+        animation: silkIn .65s cubic-bezier(.16,1,.3,1) both;
+    }
     .vip-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border-radius: 20px;
-        padding: 28px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-        border: 1px solid #e2e8f0;
-        animation: fadeIn 0.5s ease-in-out;
+        padding: 1.5rem 1.6rem; border-radius: 23px; margin: .8rem 0 1.2rem;
+        border: 1px solid rgba(110,231,249,.2);
+        background: radial-gradient(circle at 90% 0%, rgba(167,139,250,.13), transparent 33%),
+                    linear-gradient(135deg, rgba(24,42,73,.98), rgba(15,24,44,.98));
+        box-shadow: 0 20px 48px rgba(0,0,0,.22); transition: transform .3s ease, box-shadow .3s ease;
+        animation: silkIn .6s cubic-bezier(.16,1,.3,1) both;
     }
-    .vip-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 2px solid #f1f5f9;
-        padding-bottom: 18px;
-        margin-bottom: 22px;
-    }
-    .vip-title {
-        font-size: 1.7rem;
-        font-weight: 800;
-        color: #0f172a;
-    }
+    .vip-card:hover { transform: translateY(-4px); box-shadow: 0 25px 55px rgba(0,0,0,.3), 0 0 28px rgba(110,231,249,.07); }
+    .vip-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; border-bottom:1px solid rgba(148,163,184,.17); padding-bottom:1.15rem; margin-bottom:1rem; }
+    .vip-title { font-size: 1.85rem; font-weight: 800; color:#f3f7ff; letter-spacing:-.045em; }
+    .badge { display:inline-block; padding:.48rem .9rem; border-radius:999px; font-size:.78rem; font-weight:800; border:1px solid; }
+    .badge-gioi { background:rgba(34,197,94,.13); color:#86efac; border-color:rgba(134,239,172,.35); }
+    .badge-kha { background:rgba(56,189,248,.13); color:#7dd3fc; border-color:rgba(125,211,252,.35); }
+    .badge-tb { background:rgba(251,191,36,.12); color:#fcd34d; border-color:rgba(252,211,77,.35); }
+    .badge-yeu { background:rgba(251,113,133,.12); color:#fda4af; border-color:rgba(253,164,175,.35); }
 
-    /* Badges Xếp loại */
-    .badge {
-        padding: 8px 18px;
-        border-radius: 30px;
-        font-size: 0.95rem;
-        font-weight: 700;
-        display: inline-block;
-        letter-spacing: 0.3px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    /* Native Streamlit widgets */
+    [data-testid="stMetric"] {
+        background: linear-gradient(145deg, rgba(28,43,72,.85), rgba(15,24,43,.9));
+        padding: 1rem 1.1rem; border: 1px solid rgba(148,163,184,.16);
+        border-radius: 17px; transition: transform .28s ease, box-shadow .28s ease;
     }
-    .badge-gioi { background-color: #dcfce7; color: #15803d; border: 1px solid #86efac; }
-    .badge-kha { background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
-    .badge-tb { background-color: #fef3c7; color: #b45309; border: 1px solid #fde047; }
-    .badge-yeu { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
-
-    /* Developer Card Sidebar */
-    .dev-card {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        color: white;
-        padding: 18px;
-        border-radius: 16px;
-        margin-top: 20px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+    [data-testid="stMetric"]:hover { transform: translateY(-4px); box-shadow: 0 16px 32px rgba(0,0,0,.22); }
+    [data-testid="stMetricLabel"] { color: #aab8d2 !important; }
+    [data-testid="stMetricValue"] { color: #eff6ff !important; }
+    [data-testid="stProgressBar"] > div > div { background: linear-gradient(90deg, #22d3ee, #a78bfa); }
+    [data-testid="stDataFrame"], [data-testid="stTable"] { border: 1px solid rgba(148,163,184,.16); border-radius: 14px; overflow: hidden; }
+    .stButton button, [data-testid="baseButton-secondary"] {
+        border-radius: 12px; border: 1px solid rgba(110,231,249,.3);
+        background: linear-gradient(135deg, rgba(34,211,238,.12), rgba(139,92,246,.12));
+        color: #eafaff; font-weight: 700; transition: all .25s cubic-bezier(.16,1,.3,1);
     }
-    .dev-card h4 {
-        margin: 0 0 10px 0;
-        font-size: 1.05rem;
-        color: #38bdf8;
+    .stButton button:hover { transform: translateY(-2px); border-color: rgba(110,231,249,.65); box-shadow: 0 10px 25px rgba(34,211,238,.1); }
+    hr { border-color: rgba(148,163,184,.14); }
+    @media (max-width: 900px) {
+        .block-container { padding: 1.2rem 1rem 2rem; }
+        .metric-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .main-header { padding: 1.5rem; }
     }
-    .dev-card p {
-        margin: 5px 0;
-        font-size: 0.88rem;
-        color: #cbd5e1;
+    @media (max-width: 520px) { .metric-grid { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-
-# ==========================================
-# 3. CHUẨN BỊ & XỬ LÝ DỮ LIỆU
-# ==========================================
+# =========================================================
+# 3. DỮ LIỆU & LOGIC — GIỮ NGUYÊN
+# =========================================================
 @st.cache_data
 def get_student_data():
-  data = {
-      "Họ và tên": [
-          "An",
-          "Bình",
-          "Chi",
-          "Dũng",
-          "Hà",
-          "Lan",
-          "Minh",
-          "Nam",
-          "Phúc",
-          "Trang",
-      ],
-      "Điểm chuyên cần": [8.0, 8.5, 6.5, 9.0, 7.5, 6.0, 8.5, 7.0, 7.5, 9.5],
-      "Điểm giữa kỳ": [8.0, 8.0, 6.0, 9.0, 7.0, 5.5, 8.0, 6.5, 7.0, 9.0],
-      "Điểm cuối kỳ": [8.0, 8.5, 6.5, 9.0, 7.5, 5.5, 8.5, 7.0, 7.5, 9.0],
-  }
-  df = pd.DataFrame(data)
+    data = {
+        "Họ và tên": ["An", "Bình", "Chi", "Dũng", "Hà", "Lan", "Minh", "Nam", "Phúc", "Trang"],
+        "Điểm chuyên cần": [8.0, 8.5, 6.5, 9.0, 7.5, 6.0, 8.5, 7.0, 7.5, 9.5],
+        "Điểm giữa kỳ": [8.0, 8.0, 6.0, 9.0, 7.0, 5.5, 8.0, 6.5, 7.0, 9.0],
+        "Điểm cuối kỳ": [8.0, 8.5, 6.5, 9.0, 7.5, 5.5, 8.5, 7.0, 7.5, 9.0],
+    }
+    df = pd.DataFrame(data)
 
-  # Công thức: 20% Chuyên cần + 30% Giữa kỳ + 50% Cuối kỳ
-  df["Tong_ket"] = (
-      0.2 * df["Điểm chuyên cần"]
-      + 0.3 * df["Điểm giữa kỳ"]
-      + 0.5 * df["Điểm cuối kỳ"]
-  ).round(2)
+    # Công thức gốc: 20% chuyên cần + 30% giữa kỳ + 50% cuối kỳ
+    df["Tong_ket"] = (
+        0.2 * df["Điểm chuyên cần"]
+        + 0.3 * df["Điểm giữa kỳ"]
+        + 0.5 * df["Điểm cuối kỳ"]
+    ).round(2)
 
-  # Xếp loại
-  def phan_loai(score):
-    if score >= 8.5:
-      return "Giỏi"
-    elif score >= 7.0:
-      return "Khá"
-    elif score >= 5.0:
-      return "Trung bình"
-    else:
-      return "Yếu"
+    # Các mốc xếp loại gốc
+    def phan_loai(score):
+        if score >= 8.5:
+            return "Giỏi"
+        elif score >= 7.0:
+            return "Khá"
+        elif score >= 5.0:
+            return "Trung bình"
+        return "Yếu"
 
-  df["Xep_loai"] = df["Tong_ket"].apply(phan_loai)
-  return df
+    df["Xep_loai"] = df["Tong_ket"].map(phan_loai)
+    return df
 
 
 df_students = get_student_data()
 
-
-# ==========================================
-# 4. THANH BÊN (SIDEBAR) & TÌM KIẾM AUTOCOMPLETE
-# ==========================================
+# =========================================================
+# 4. SIDEBAR — BẢNG ĐIỀU KHIỂN
+# =========================================================
 with st.sidebar:
-  st.image("https://cdn-icons-png.flaticon.com/512/3135/3135755.png", width=75)
-  st.title("⚙️ BẢNG ĐIỀU KHIỂN")
-  st.markdown("---")
+    st.markdown(
+        """
+        <div class="sidebar-brand">
+            <div class="symbol">◈</div>
+            <h2>BẢNG ĐIỀU KHIỂN</h2>
+            <span>AURORA • ACADEMIC INTELLIGENCE</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown("### 🔎 Bộ lọc thông minh")
 
-  st.subheader("🔍 Lọc & Tìm kiếm Autocomplete")
+    search_options = ["Tất cả sinh viên"] + df_students["Họ và tên"].tolist()
+    selected_student_search = st.selectbox(
+        "Tìm kiếm / chọn sinh viên",
+        options=search_options,
+        index=0,
+        help="Gõ tên hoặc chữ cái để tìm nhanh sinh viên.",
+    )
 
-  # Ô tìm kiếm gợi ý danh sách tự động (Autocomplete Selectbox)
-  search_options = ["Tất cả sinh viên"] + df_students["Họ và tên"].tolist()
-  selected_student_search = st.selectbox(
-      "🔎 Tìm kiếm/Chọn sinh viên (Gõ chữ để gợi ý):",
-      options=search_options,
-      index=0,
-      help=(
-          "Click vào ô hoặc gõ trực tiếp chữ cái (vd: A, B, T...) để chọn"
-          " nhanh sinh viên."
-      ),
-  )
-
-  # Lọc theo Xếp loại
-  categories = ["Tất cả xếp loại"] + list(df_students["Xep_loai"].unique())
-  selected_category = st.selectbox("🏷️ Lọc theo xếp loại:", categories)
-
-  # Xử lý dữ liệu sau lọc
-  df_filtered = df_students.copy()
-
-  if selected_student_search != "Tất cả sinh viên":
-    df_filtered = df_filtered[
-        df_filtered["Họ và tên"] == selected_student_search
+    categories = ["Tất cả xếp loại"] + [
+        category for category in ["Giỏi", "Khá", "Trung bình", "Yếu"]
+        if category in df_students["Xep_loai"].values
     ]
+    selected_category = st.selectbox("Lọc theo xếp loại", categories)
 
-  if selected_category != "Tất cả xếp loại":
-    df_filtered = df_filtered[df_filtered["Xep_loai"] == selected_category]
+    df_filtered = df_students.copy()
+    if selected_student_search != "Tất cả sinh viên":
+        df_filtered = df_filtered[df_filtered["Họ và tên"] == selected_student_search]
+    if selected_category != "Tất cả xếp loại":
+        df_filtered = df_filtered[df_filtered["Xep_loai"] == selected_category]
 
-  st.markdown("---")
+    st.markdown("---")
+    st.markdown(
+        """
+        <div class="dev-card">
+            <h4>✦ THÔNG TIN TÁC GIẢ</h4>
+            <p><b>Họ và tên:</b> Nguyễn Văn A</p>
+            <p><b>MSSV:</b> 22110000</p>
+            <p><b>Lớp:</b> Lập trình Python K63</p>
+            <p><b>Trường:</b> ĐH Giao Thông Vận Tải</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.caption("AURORA UI • Student Analytics")
 
-  # Thẻ thông tin tác giả
-  st.markdown(
-      """
-    <div class="dev-card">
-        <h4>👨‍💻 THÔNG TIN TÁC GIẢ</h4>
-        <p><b>Họ và tên:</b> Nguyễn Văn A</p>
-        <p><b>MSSV:</b> 22110000</p>
-        <p><b>Lớp:</b> Lập trình Python K63</p>
-        <p><b>Trường:</b> ĐH Giao Thông Vận Tải</p>
-    </div>
-    """,
-      unsafe_allow_html=True,
-  )
-
-
-# ==========================================
-# 5. TIÊU ĐỀ TRANG WEB
-# ==========================================
+# =========================================================
+# 5. HERO HEADER
+# =========================================================
 st.markdown(
     """
     <div class="main-header">
-        <h1>📊 QUẢN LÝ ĐIỂM SINH VIÊN VIP</h1>
-        <p>Hệ thống tự động thống kê, phân tích biểu đồ tương tác & tra cứu hồ sơ học tập</p>
+        <div class="eyebrow">Academic Intelligence Platform</div>
+        <h1>QUẢN LÝ ĐIỂM SINH VIÊN <span style="color:#6ee7f9">VIP</span></h1>
+        <p>Phân tích thành tích học tập, trực quan hóa dữ liệu và tra cứu hồ sơ trong một không gian cao cấp.</p>
+        <div class="status-pill"><span class="status-dot"></span> HỆ THỐNG SẴN SÀNG &nbsp;·&nbsp; DỮ LIỆU 10 SINH VIÊN</div>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
+tab1, tab2, tab3 = st.tabs(
+    ["◈  Tổng quan & Bảng điểm", "⌁  Biểu đồ & Phân tích", "◎  Tra cứu cá nhân"]
+)
 
-# ==========================================
-# 6. BO CỤC TABS
-# ==========================================
-tab1, tab2, tab3 = st.tabs([
-    "📊 Tổng quan & Bảng điểm",
-    "📈 Biểu đồ & Phân tích",
-    "🔍 Tra cứu cá nhân",
-])
-
-
-# ------------------------------------------
-# TAB 1: TỔNG QUAN & BẢNG ĐIỂM
-# ------------------------------------------
+# =========================================================
+# 6. TAB 1 — OVERVIEW & SCORE TABLE
+# =========================================================
 with tab1:
-  st.subheader("📌 Chỉ số thống kê tổng quan toàn lớp")
+    st.markdown('<div class="section-kicker">Class overview</div>', unsafe_allow_html=True)
+    st.subheader("Chỉ số thống kê tổng quan toàn lớp")
 
-  avg_score = df_students["Tong_ket"].mean()
-  max_student = df_students.loc[df_students["Tong_ket"].idxmax()]
-  min_student = df_students.loc[df_students["Tong_ket"].idxmin()]
-  passed_count = (df_students["Tong_ket"] >= 5.0).sum()
-  pass_rate = (passed_count / len(df_students)) * 100
+    avg_score = df_students["Tong_ket"].mean()
+    max_student = df_students.loc[df_students["Tong_ket"].idxmax()]
+    min_student = df_students.loc[df_students["Tong_ket"].idxmin()]
+    passed_count = int((df_students["Tong_ket"] >= 5.0).sum())
+    pass_rate = (passed_count / len(df_students)) * 100
 
-  m1, m2, m3, m4 = st.columns(4)
-  with m1:
-    st.markdown(
-        f"""
-            <div class="metric-card animate-slide">
-                <div class="metric-label">Điểm TB Lớp</div>
-                <div class="metric-value val-blue">{avg_score:.2f}</div>
-                <div class="metric-subtext">Thang điểm 10</div>
-            </div>
-        """,
-        unsafe_allow_html=True,
+    metric_items = [
+        ("Điểm TB lớp", f"{avg_score:.2f}", "Thang điểm 10", "val-blue", "◉"),
+        ("Điểm cao nhất", f"{max_student['Tong_ket']:.2f}", f"🏆 {max_student['Họ và tên']}", "val-green", "✦"),
+        ("Điểm thấp nhất", f"{min_student['Tong_ket']:.2f}", f"↘ {min_student['Họ và tên']}", "val-red", "⌁"),
+        ("Tỷ lệ đạt", f"{pass_rate:.0f}%", f"{passed_count}/{len(df_students)} sinh viên", "val-purple", "✓"),
+    ]
+    cards_html = '<div class="metric-grid">'
+    for label, value, subtext, color_class, icon in metric_items:
+        cards_html += (
+            f'<div class="metric-card" data-icon="{icon}">'
+            f'<div class="metric-label">{label}</div>'
+            f'<div class="metric-value {color_class}">{value}</div>'
+            f'<div class="metric-subtext">{subtext}</div></div>'
+        )
+    cards_html += "</div>"
+    st.markdown(cards_html, unsafe_allow_html=True)
+
+    st.markdown('<div class="section-kicker">Student records</div>', unsafe_allow_html=True)
+    st.subheader("Bảng điểm sinh viên")
+    st.caption(f"Đang hiển thị {len(df_filtered)} / {len(df_students)} sinh viên theo bộ lọc ở thanh điều khiển.")
+
+    def highlight_xep_loai(val):
+        styles = {
+            "Giỏi": "background-color: #dcfce7; color: #166534; font-weight: 700;",
+            "Khá": "background-color: #dbeafe; color: #1d4ed8; font-weight: 700;",
+            "Trung bình": "background-color: #fef3c7; color: #92400e; font-weight: 700;",
+            "Yếu": "background-color: #fee2e2; color: #991b1b; font-weight: 700;",
+        }
+        return styles.get(val, "")
+
+    styled_df = (
+        df_filtered.style
+        .map(highlight_xep_loai, subset=["Xep_loai"])
+        .format({"Tong_ket": "{:.2f}"})
     )
-  with m2:
-    st.markdown(
-        f"""
-            <div class="metric-card animate-slide">
-                <div class="metric-label">Điểm Cao Nhất</div>
-                <div class="metric-value val-green">{max_student['Tong_ket']}</div>
-                <div class="metric-subtext">🏆 {max_student['Họ và tên']}</div>
-            </div>
-        """,
-        unsafe_allow_html=True,
-    )
-  with m3:
-    st.markdown(
-        f"""
-            <div class="metric-card animate-slide">
-                <div class="metric-label">Điểm Thấp Nhất</div>
-                <div class="metric-value val-red">{min_student['Tong_ket']}</div>
-                <div class="metric-subtext">📉 {min_student['Họ và tên']}</div>
-            </div>
-        """,
-        unsafe_allow_html=True,
-    )
-  with m4:
-    st.markdown(
-        f"""
-            <div class="metric-card animate-slide">
-                <div class="metric-label">Tỷ Lệ Đạt</div>
-                <div class="metric-value val-purple">{pass_rate:.0f}%</div>
-                <div class="metric-subtext">✅ {passed_count}/{len(df_students)} Sinh viên</div>
-            </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.dataframe(styled_df, use_container_width=True, height=390, hide_index=True)
 
-  st.write("")
-  st.write("")
-  st.subheader("📋 Bảng điểm sinh viên đầy đủ")
-
-  def highlight_xep_loai(val):
-    if val == "Giỏi":
-      return "background-color: #dcfce7; color: #15803d; font-weight: bold;"
-    elif val == "Khá":
-      return "background-color: #e0f2fe; color: #0369a1; font-weight: bold;"
-    elif val == "Trung bình":
-      return "background-color: #fef3c7; color: #b45309; font-weight: bold;"
-    else:
-      return "background-color: #fee2e2; color: #b91c1c; font-weight: bold;"
-
-  styled_df = df_filtered.style.map(
-      highlight_xep_loai, subset=["Xep_loai"]
-  ).format({"Tong_ket": "{:.2f}"})
-
-  st.dataframe(styled_df, use_container_width=True, height=380)
-
-
-# ------------------------------------------
-# TAB 2: BIỂU ĐỒ & PHÂN TÍCH
-# ------------------------------------------
+# =========================================================
+# 7. TAB 2 — CHARTS & ANALYTICS
+# =========================================================
 with tab2:
-  st.subheader("📈 Phân tích trực quan kết quả học tập")
+    st.markdown('<div class="section-kicker">Visual analytics</div>', unsafe_allow_html=True)
+    st.subheader("Phân tích trực quan kết quả học tập")
 
-  col_chart1, col_chart2 = st.columns([6, 4])
-
-  color_map = {
-      "Giỏi": "#15803d",
-      "Khá": "#0284c7",
-      "Trung bình": "#d97706",
-      "Yếu": "#dc2626",
-  }
-
-  with col_chart1:
-    st.markdown("##### **Biểu đồ cột điểm tổng kết từng sinh viên**")
-    fig_bar = px.bar(
-        df_students,
-        x="Họ và tên",
-        y="Tong_ket",
-        color="Xep_loai",
-        color_discrete_map=color_map,
-        text="Tong_ket",
-        labels={
-            "Tong_ket": "Điểm tổng kết",
-            "Họ và tên": "Sinh viên",
-            "Xep_loai": "Xếp loại",
-        },
-        height=420,
-    )
-    fig_bar.update_traces(
-        textposition="outside",
-        hovertemplate="<b>%{x}</b><br>Điểm tổng kết: %{y}<extra></extra>",
-    )
-    fig_bar.update_layout(
-        yaxis=dict(range=[0, 10.5], title="Điểm số"),
-        xaxis=dict(title="Sinh viên"),
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=20, r=20, t=30, b=20),
-        font=dict(family="Inter, sans-serif"),
-    )
-    st.plotly_chart(fig_bar, use_container_width=True)
-
-  with col_chart2:
-    st.markdown("##### **Tỷ lệ phân bổ xếp loại của lớp**")
-    rank_counts = df_students["Xep_loai"].value_counts().reset_index()
-    rank_counts.columns = ["Xếp loại", "Số lượng"]
-
-    fig_pie = px.pie(
-        rank_counts,
-        names="Xếp loại",
-        values="Số lượng",
-        color="Xếp loại",
-        color_discrete_map=color_map,
-        hole=0.5,
-        height=420,
-    )
-    fig_pie.update_traces(
-        textinfo="percent+label",
-        hovertemplate="<b>%{label}</b>: %{value} SV (%{percent})<extra></extra>",
-    )
-    fig_pie.update_layout(
-        showlegend=False,
+    col_chart1, col_chart2 = st.columns([1.35, 1], gap="large")
+    color_map = {
+        "Giỏi": "#6ee7b7",
+        "Khá": "#7dd3fc",
+        "Trung bình": "#fcd34d",
+        "Yếu": "#fda4af",
+    }
+    chart_font = "Plus Jakarta Sans, sans-serif"
+    common_layout = dict(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=20, r=20, t=30, b=20),
-        font=dict(family="Inter, sans-serif"),
+        font=dict(family=chart_font, color="#dbe7ff"),
+        margin=dict(l=12, r=12, t=35, b=12),
+        hoverlabel=dict(
+            bgcolor="#111c32", bordercolor="rgba(110,231,249,.35)",
+            font=dict(family=chart_font, color="#f1f5ff", size=13),
+        ),
+        transition=dict(duration=450, easing="cubic-in-out"),
     )
-    st.plotly_chart(fig_pie, use_container_width=True)
 
+    with col_chart1:
+        st.markdown('<div class="panel">', unsafe_allow_html=True)
+        st.markdown("**Điểm tổng kết từng sinh viên**")
+        fig_bar = px.bar(
+            df_students,
+            x="Họ và tên",
+            y="Tong_ket",
+            color="Xep_loai",
+            color_discrete_map=color_map,
+            text="Tong_ket",
+            labels={"Tong_ket": "Điểm tổng kết", "Họ và tên": "Sinh viên", "Xep_loai": "Xếp loại"},
+            height=420,
+            category_orders={"Họ và tên": df_students["Họ và tên"].tolist()},
+        )
+        fig_bar.update_traces(
+            textposition="outside",
+            texttemplate="%{y:.2f}",
+            marker_line_width=0,
+            hovertemplate="<b>%{x}</b><br>Điểm tổng kết: %{y:.2f}<br>Xếp loại: %{fullData.name}<extra></extra>",
+        )
+        fig_bar.update_layout(**common_layout, bargap=.34, showlegend=True, legend_title_text="")
+        fig_bar.update_xaxes(showgrid=False, zeroline=False, title=None, tickfont=dict(size=11))
+        fig_bar.update_yaxes(
+            range=[0, 10.6], title="Điểm số", showgrid=False,
+            zeroline=False, ticksuffix="  ",
+        )
+        st.plotly_chart(fig_bar, use_container_width=True, config={"displayModeBar": False})
+        st.markdown("</div>", unsafe_allow_html=True)
 
-# ------------------------------------------
-# TAB 3: TRA CỨU CÁ NHÂN
-# ------------------------------------------
+    with col_chart2:
+        st.markdown('<div class="panel">', unsafe_allow_html=True)
+        st.markdown("**Cơ cấu xếp loại của lớp**")
+        rank_order = ["Giỏi", "Khá", "Trung bình", "Yếu"]
+        rank_counts = (
+            df_students["Xep_loai"].value_counts()
+            .reindex(rank_order, fill_value=0)
+            .rename_axis("Xếp loại")
+            .reset_index(name="Số lượng")
+        )
+        rank_counts = rank_counts[rank_counts["Số lượng"] > 0]
+        fig_pie = px.pie(
+            rank_counts,
+            names="Xếp loại",
+            values="Số lượng",
+            color="Xếp loại",
+            color_discrete_map=color_map,
+            hole=.68,
+            height=420,
+        )
+        fig_pie.update_traces(
+            textinfo="percent",
+            textfont=dict(size=13, color="#f1f5ff"),
+            marker=dict(line=dict(color="#10182b", width=3)),
+            hovertemplate="<b>%{label}</b><br>%{value} sinh viên · %{percent}<extra></extra>",
+            sort=False,
+        )
+        fig_pie.update_layout(**common_layout, showlegend=True, legend_title_text="")
+        fig_pie.update_layout(legend=dict(orientation="h", y=-.05, x=.5, xanchor="center"))
+        st.plotly_chart(fig_pie, use_container_width=True, config={"displayModeBar": False})
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.caption("Gợi ý: rê chuột lên từng cột hoặc lát biểu đồ để xem chi tiết.")
+
+# =========================================================
+# 8. TAB 3 — STUDENT PROFILE
+# =========================================================
 with tab3:
-  st.subheader("🔍 Tra cứu chi tiết hồ sơ thành tích cá nhân")
+    st.markdown('<div class="section-kicker">Individual student profile</div>', unsafe_allow_html=True)
+    st.subheader("Tra cứu chi tiết hồ sơ thành tích cá nhân")
 
-  selected_student_name = st.selectbox(
-      "🎯 Chọn sinh viên cần tra cứu hồ sơ:",
-      options=df_students["Họ và tên"].tolist(),
-      index=0,
-  )
+    selected_student_name = st.selectbox(
+        "Chọn sinh viên cần tra cứu hồ sơ:",
+        options=df_students["Họ và tên"].tolist(),
+        index=0,
+        key="profile_student",
+    )
+    student_info = df_students[df_students["Họ và tên"] == selected_student_name].iloc[0]
 
-  student_info = df_students[
-      df_students["Họ và tên"] == selected_student_name
-  ].iloc[0]
+    rank_class = {
+        "Giỏi": "badge-gioi",
+        "Khá": "badge-kha",
+        "Trung bình": "badge-tb",
+        "Yếu": "badge-yeu",
+    }.get(student_info["Xep_loai"], "badge-yeu")
 
-  rank_class = "badge-yeu"
-  if student_info["Xep_loai"] == "Giỏi":
-    rank_class = "badge-gioi"
-  elif student_info["Xep_loai"] == "Khá":
-    rank_class = "badge-kha"
-  elif student_info["Xep_loai"] == "Trung bình":
-    rank_class = "badge-tb"
-
-  st.markdown(
-      f"""
-        <div class="vip-card animate-fade">
+    st.markdown(
+        f"""
+        <div class="vip-card">
             <div class="vip-header">
                 <div>
-                    <span style="font-size: 0.88rem; color: #64748b; font-weight: 600; text-transform: uppercase;">HỒ SƠ HỌC TẬP CÁ NHÂN</span>
-                    <div class="vip-title">👤 {student_info['Họ và tên']}</div>
+                    <div class="section-kicker">Personal academic record</div>
+                    <div class="vip-title">◉ &nbsp;{student_info['Họ và tên']}</div>
+                    <div style="color:#9eacc7;font-size:.86rem;margin-top:.35rem;">Hồ sơ thành tích học tập · Thang điểm 10</div>
                 </div>
-                <div>
-                    <span class="badge {rank_class}">Xếp loại: {student_info['Xep_loai']}</span>
-                </div>
+                <span class="badge {rank_class}">Xếp loại: {student_info['Xep_loai']}</span>
+            </div>
+            <div style="color:#aab8d2;font-size:.84rem;">ĐIỂM TỔNG KẾT</div>
+            <div style="font-size:3.1rem;font-weight:800;letter-spacing:-.06em;color:#8be9f8;line-height:1.2;">
+                {student_info['Tong_ket']:.2f}<span style="font-size:1rem;color:#7f91b3;font-weight:600;"> / 10.00</span>
             </div>
         </div>
-    """,
-      unsafe_allow_html=True,
-  )
-
-  st.write("")
-
-  c_cc, c_gk, c_ck, c_tk = st.columns(4)
-  with c_cc:
-    st.metric(
-        label="🎯 Điểm Chuyên Cần (20%)", value=f"{student_info['Điểm chuyên cần']}"
-    )
-  with c_gk:
-    st.metric(
-        label="📝 Điểm Giữa Kỳ (30%)", value=f"{student_info['Điểm giữa kỳ']}"
-    )
-  with c_ck:
-    st.metric(
-        label="✍️ Điểm Cuối Kỳ (50%)", value=f"{student_info['Điểm cuối kỳ']}"
-    )
-  with c_tk:
-    st.metric(
-        label="🌟 ĐIỂM TỔNG KẾT",
-        value=f"{student_info['Tong_ket']}",
-        delta=f"{student_info['Xep_loai']}",
+        """,
+        unsafe_allow_html=True,
     )
 
-  progress_val = float(student_info["Tong_ket"]) / 10.0
-  st.write("")
-  st.write("**Tiến độ hoàn thành điểm số (thang điểm 10.0):**")
-  st.progress(progress_val)
+    c_cc, c_gk, c_ck, c_tk = st.columns(4, gap="medium")
+    with c_cc:
+        st.metric("🎯 Điểm chuyên cần", f"{student_info['Điểm chuyên cần']:.1f}", "Trọng số 20%")
+    with c_gk:
+        st.metric("📝 Điểm giữa kỳ", f"{student_info['Điểm giữa kỳ']:.1f}", "Trọng số 30%")
+    with c_ck:
+        st.metric("✍️ Điểm cuối kỳ", f"{student_info['Điểm cuối kỳ']:.1f}", "Trọng số 50%")
+    with c_tk:
+        st.metric("🌟 Điểm tổng kết", f"{student_info['Tong_ket']:.2f}", student_info["Xep_loai"])
+
+    st.markdown("**Tiến độ điểm tổng kết trên thang điểm 10**")
+    st.progress(float(student_info["Tong_ket"]) / 10.0)
+
+    with st.expander("Xem cách tính điểm của sinh viên"):
+        st.latex(
+            r"\text{Tổng kết} = 0.2 \times \text{Chuyên cần}"
+            r" + 0.3 \times \text{Giữa kỳ} + 0.5 \times \text{Cuối kỳ}"
+        )
+        st.write(
+            f"= 0.2 × {student_info['Điểm chuyên cần']:.1f}"
+            f" + 0.3 × {student_info['Điểm giữa kỳ']:.1f}"
+            f" + 0.5 × {student_info['Điểm cuối kỳ']:.1f}"
+            f" = **{student_info['Tong_ket']:.2f}**"
+        )
+
+st.markdown("---")
+st.markdown(
+    '<div style="text-align:center;color:#7183a5;font-size:.75rem;padding:.25rem 0 1rem;">'
+    'AURORA STUDENT ANALYTICS · Designed for clarity, built for insight</div>',
+    unsafe_allow_html=True,
+)
+'''
+out = Path("/mnt/data/app.py")
+out.write_text(code, encoding="utf-8")
+print(f"Đã tạo {out} ({out.stat().st_size:,} bytes)")
